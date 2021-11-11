@@ -1,7 +1,7 @@
 import { Db } from "mongodb";
 import { getAndSaveRickyMortyCharacters } from "./populatedb";
 import express from "express";
-import { character, characters, register, login, signOut, deleteUser } from "./resolvers";
+import { character, characters, register, login, signOut, deleteUser, updateState } from "./resolvers";
 
 const run = async () => {
   const db: Db = await getAndSaveRickyMortyCharacters();
@@ -58,6 +58,18 @@ const run = async () => {
       res.json({status:409,message:"you arent logged in."})
     }
   });
+  app.use(`/updateState/:id`, async(req, res, next) => {
+    if(req.headers.token != undefined || req.headers.token != null){
+      const user = await db.collection("Registered_Users").findOne({token: req.headers.token})
+      if(user){
+        next();
+      }else{
+        res.json({status:409,message:"you arent logged in."})
+      }
+    }else{
+      res.json({status:409,message:"you arent logged in."})
+    }
+  });
 
   app.get("/status", async (req, res) => {
     res.json({status:200,message:"Working."});
@@ -65,6 +77,7 @@ const run = async () => {
 
   app.get("/characters", characters);
   app.get("/character/:id", character);
+  app.put("/updateState/:id", updateState);
   app.put("/register",register);
   app.get("/login", login);
   app.get("/signOut", signOut);

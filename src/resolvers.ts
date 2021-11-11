@@ -20,7 +20,7 @@ export const character = async (req: Request, res: Response) => {
   const db: Db = req.app.get("db");
   const char = await db.collection("Characters").findOne({ id: parseInt(id) });
   if (char) res.status(200).json(char);
-  else res.json({status:404,message:"Character not found."})
+  else res.status(404).json({status:404,message:"Character not found."})
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -64,6 +64,25 @@ export const signOut = async (req:Request, res: Response) => {
   }else{
     res.json({status:404,message:"User not found"})
   }
+}
+
+export const updateState = async (req:Request, res: Response) => {
+  const id = req.params.id;
+  const db: Db = req.app.get("db");
+  const char = await db.collection("Characters").findOne({ id: parseInt(id) });
+  if (char){
+    if(char['status'] === "Alive"){
+      await db.collection("Characters").findOneAndUpdate({id: parseInt(id)},{'$set' : {status:"Dead"}});
+      const character = await db.collection("Characters").findOne({ id: parseInt(id) });
+      res.status(200).json(character)
+    }else{
+      await db.collection("Characters").findOneAndUpdate({id: parseInt(id)},{'$set' : {status:"Alive"}});
+      const character = await db.collection("Characters").findOne({ id: parseInt(id) });
+      res.status(200).json(character)
+    }
+  }
+  else res.status(404).json({status:404,message:"Character not found."})
+  
 }
 
 export const deleteUser = async (req:Request, res: Response) => {
